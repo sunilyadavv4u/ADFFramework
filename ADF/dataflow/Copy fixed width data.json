@@ -1,0 +1,64 @@
+{
+	"name": "Copy fixed width data",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_Dataflow_csv",
+						"type": "DatasetReference"
+					},
+					"name": "Schemasource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_Dataflow_targetDataset",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "convertintomultiplecolumns"
+				},
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {id   name           joined_date                 salary} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Schemasource",
+				"Schemasource derive(Id = substring({id   name           joined_date                 salary}, 1, 5),",
+				"          Name = substring({id   name           joined_date                 salary}, 6, 15),",
+				"          JoinedDate = substring({id   name           joined_date                 salary}, 21, 28),",
+				"          Salary = substring({id   name           joined_date                 salary}, 49, 8)) ~> convertintomultiplecolumns",
+				"convertintomultiplecolumns select(mapColumn(",
+				"          Id,",
+				"          Name,",
+				"          JoinedDate,",
+				"          Salary",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}

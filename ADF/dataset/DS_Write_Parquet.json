@@ -1,0 +1,54 @@
+{
+	"name": "DS_Write_Parquet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLSGen2_Using_AK",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"AcountName": {
+					"value": "@dataset().ServerName",
+					"type": "Expression"
+				},
+				"AccountKeySecret": {
+					"value": "@dataset().Secret",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"ServerName": {
+				"type": "string"
+			},
+			"Secret": {
+				"type": "string"
+			},
+			"ContainerName": {
+				"type": "string"
+			},
+			"Directory": {
+				"type": "string"
+			},
+			"FileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@concat(dataset().Directory,'/' ,dataset().FileName)",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().ContainerName",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

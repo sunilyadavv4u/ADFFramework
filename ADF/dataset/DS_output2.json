@@ -1,0 +1,17 @@
+{
+	"name": "DS_output2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Using_MI",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "tbl",
+			"table": "midsalary"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

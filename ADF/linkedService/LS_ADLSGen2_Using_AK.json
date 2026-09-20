@@ -1,0 +1,32 @@
+{
+	"name": "LS_ADLSGen2_Using_AK",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"AcountName": {
+				"type": "string",
+				"defaultValue": "https://rsdev.dfs.core.windows.net"
+			},
+			"AccountKeySecret": {
+				"type": "string",
+				"defaultValue": "ADLSSecret"
+			}
+		},
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "@{linkedService().AcountName}",
+			"accountKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_AccountKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().AccountKeySecret",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

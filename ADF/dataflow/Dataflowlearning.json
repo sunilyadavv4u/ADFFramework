@@ -1,0 +1,109 @@
+{
+	"name": "Dataflowlearning",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_Dataflow_learning_csv",
+						"type": "DatasetReference"
+					},
+					"name": "ADLSSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_output2",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_output_3",
+						"type": "DatasetReference"
+					},
+					"name": "sink2"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_output_1",
+						"type": "DatasetReference"
+					},
+					"name": "hight"
+				}
+			],
+			"transformations": [
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "split1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          EmployeeID as integer,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          Department as string,",
+				"          JobTitle as string,",
+				"          Salary as double,",
+				"          Bonus as double,",
+				"          City as string,",
+				"          Country as string,",
+				"          JoinDate as date,",
+				"          Status as string,",
+				"          ManagerID as integer,",
+				"          Email as string,",
+				"          LastUpdated as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> ADLSSource",
+				"ADLSSource filter((Department == 'IT')) ~> filter1",
+				"filter1 derive(AnnualSalary = 12*Salary,",
+				"          FullName = concat(FirstName,' ', LastName),",
+				"          TotalCompensation = Salary + Bonus) ~> derivedColumn1",
+				"derivedColumn1 split(Salary >= 100000,",
+				"     Salary >= 60000 && Salary < 100000,",
+				"     disjoint: false) ~> split1@(HighSalary, MediumSalary, LowSalary)",
+				"split1@MediumSalary sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1",
+				"split1@LowSalary sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink2",
+				"split1@HighSalary sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> hight"
+			]
+		}
+	}
+}

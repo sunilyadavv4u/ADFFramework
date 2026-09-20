@@ -1,0 +1,15 @@
+{
+	"name": "RSADFDev",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "9a7001c9-435e-4dd1-83b7-fb111c42f7be",
+		"tenantId": "01644c2e-6385-4b20-8591-6e4f319d1e64"
+	}
+}

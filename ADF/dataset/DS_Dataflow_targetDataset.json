@@ -1,0 +1,17 @@
+{
+	"name": "DS_Dataflow_targetDataset",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Using_MI",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "tbl",
+			"table": "consumer_dataflow"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

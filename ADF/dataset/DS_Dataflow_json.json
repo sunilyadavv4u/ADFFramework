@@ -1,0 +1,51 @@
+{
+	"name": "DS_Dataflow_json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLSGen2_using_MI",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "sales_orders_nested.json",
+				"folderPath": "landing/stage/raw",
+				"fileSystem": "bronze"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"SO Id": {
+					"type": "string"
+				},
+				"SODate": {
+					"type": "string"
+				},
+				"Country": {
+					"type": "string"
+				},
+				"Sales": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"Item": {
+								"type": "string"
+							},
+							"Qty": {
+								"type": "string"
+							},
+							"Value": {
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

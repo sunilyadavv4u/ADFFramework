@@ -1,0 +1,47 @@
+{
+	"name": "DS_Read_Parequet_Folders",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLSGen2_using_MI",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"serverfullpath": {
+					"value": "@dataset().ServerName",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"ServerName": {
+				"type": "string"
+			},
+			"ContainerName": {
+				"type": "string"
+			},
+			"Directory": {
+				"type": "string"
+			},
+			"TgtFileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@concat(dataset().Directory,'/',dataset().TgtFileName)",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().ContainerName",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

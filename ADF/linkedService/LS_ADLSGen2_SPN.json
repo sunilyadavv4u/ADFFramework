@@ -1,0 +1,43 @@
+{
+	"name": "LS_ADLSGen2_SPN",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"ServerName": {
+				"type": "string",
+				"defaultValue": "https://rsdev.dfs.core.windows.net"
+			},
+			"TenantId": {
+				"type": "string",
+				"defaultValue": "01644c2e-6385-4b20-8591-6e4f319d1e64"
+			},
+			"ServicePrincipalID": {
+				"type": "string",
+				"defaultValue": "6baea039-b770-4834-b3e9-3967dec19709"
+			},
+			" ServicePrincipalPasswordSecret": {
+				"type": "string",
+				"defaultValue": "ADLS-SPN-Secret"
+			}
+		},
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "@{linkedService().ServerName}",
+			"tenant": "@{linkedService().TenantId}",
+			"servicePrincipalId": "@{linkedService().ServicePrincipalID}",
+			"servicePrincipalCredentialType": "ServicePrincipalKey",
+			"servicePrincipalCredential": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_AccountKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService(). ServicePrincipalPasswordSecret",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,300 @@
+{
+	"name": "3 Archive the file after load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data from Gen2 to Azure SQL",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@concat(pipeline().parameters.srcADLSDirectory,'/',pipeline().parameters.srcADLSTgtFileName)",
+								"type": "Expression"
+							},
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_Read_Parequet_Folders",
+						"type": "DatasetReference",
+						"parameters": {
+							"ServerName": {
+								"value": "@pipeline().parameters.srcADLSServerName",
+								"type": "Expression"
+							},
+							"ContainerName": {
+								"value": "@pipeline().parameters.srcADLSContainerName",
+								"type": "Expression"
+							},
+							"Directory": {
+								"value": "@pipeline().parameters.srcADLSDirectory",
+								"type": "Expression"
+							},
+							"TgtFileName": {
+								"value": "@pipeline().parameters.srcADLSTgtFileName",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_AzureSQL_MI",
+						"type": "DatasetReference",
+						"parameters": {
+							"ServerName": {
+								"value": "@pipeline().parameters.tgtSQLServer",
+								"type": "Expression"
+							},
+							"DBName": {
+								"value": "@pipeline().parameters.tgtSQLDatabaseName",
+								"type": "Expression"
+							},
+							"TableSchema": {
+								"value": "@pipeline().parameters.tgtSQLSchema",
+								"type": "Expression"
+							},
+							"TableName": {
+								"value": "@pipeline().parameters.tgtSQLTable",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Copy data from Archive loaded data into adls",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": {
+								"value": "@concat(pipeline().parameters.srcADLSDirectory,'/',pipeline().parameters.srcADLSTgtFileName)",
+								"type": "Expression"
+							},
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "PreserveHierarchy"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_Read_Parequet_Folders",
+						"type": "DatasetReference",
+						"parameters": {
+							"ServerName": {
+								"value": "@pipeline().parameters.srcADLSServerName",
+								"type": "Expression"
+							},
+							"ContainerName": {
+								"value": "@pipeline().parameters.srcADLSContainerName",
+								"type": "Expression"
+							},
+							"Directory": {
+								"value": "@pipeline().parameters.srcADLSDirectory",
+								"type": "Expression"
+							},
+							"TgtFileName": {
+								"value": "@pipeline().parameters.srcADLSTgtFileName",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_Read_Parequet_Folders",
+						"type": "DatasetReference",
+						"parameters": {
+							"ServerName": {
+								"value": "@pipeline().parameters.srcADLSServerName",
+								"type": "Expression"
+							},
+							"ContainerName": {
+								"value": "@pipeline().parameters.srcADLSContainerName",
+								"type": "Expression"
+							},
+							"Directory": {
+								"value": "@pipeline().parameters.ADLSarchiveDirectory",
+								"type": "Expression"
+							},
+							"TgtFileName": {
+								"value": "@pipeline().parameters.srcADLSTgtFileName",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Delete1",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Copy data from Gen2 to Azure SQL",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Copy data from Archive loaded data into adls",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_Read_Parequet_Folders",
+						"type": "DatasetReference",
+						"parameters": {
+							"ServerName": {
+								"value": "@pipeline().parameters.srcADLSServerName",
+								"type": "Expression"
+							},
+							"ContainerName": {
+								"value": "@pipeline().parameters.srcADLSContainerName",
+								"type": "Expression"
+							},
+							"Directory": {
+								"value": "@pipeline().parameters.srcADLSDirectory",
+								"type": "Expression"
+							},
+							"TgtFileName": {
+								"value": "@pipeline().parameters.srcADLSTgtFileName",
+								"type": "Expression"
+							}
+						}
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			}
+		],
+		"parameters": {
+			"srcADLSServerName": {
+				"type": "string",
+				"defaultValue": "https://rsdev.dfs.core.windows.net"
+			},
+			"srcADLSContainerName": {
+				"type": "string",
+				"defaultValue": "bronze"
+			},
+			"srcADLSDirectory": {
+				"type": "string",
+				"defaultValue": "landing/stage/Metadata"
+			},
+			"srcADLSTgtFileName": {
+				"type": "string",
+				"defaultValue": "Consumer"
+			},
+			"tgtSQLServer": {
+				"type": "string",
+				"defaultValue": "rsmdev.database.windows.net"
+			},
+			"tgtSQLDatabaseName": {
+				"type": "string",
+				"defaultValue": "sqldb"
+			},
+			"tgtSQLSchema": {
+				"type": "string",
+				"defaultValue": "tbl"
+			},
+			"tgtSQLTable": {
+				"type": "string",
+				"defaultValue": "Consumer"
+			},
+			"ADLSarchiveDirectory": {
+				"type": "string",
+				"defaultValue": "archive/stage/Metadata"
+			}
+		},
+		"folder": {
+			"name": "RealtimeScenario"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-09-13T07:18:04Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
