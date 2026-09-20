@@ -1,0 +1,48 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "RSADFDev"
+		},
+		"LS_ADLSGen2_SPN_properties_typeProperties_url": {
+			"value": "@{linkedService().ServerName}"
+		},
+		"LS_ADLSGen2_SPN_properties_typeProperties_tenant": {
+			"value": "@{linkedService().TenantId}"
+		},
+		"LS_ADLSGen2_SPN_properties_typeProperties_servicePrincipalId": {
+			"value": "@{linkedService().ServicePrincipalID}"
+		},
+		"LS_ADLSGen2_Using_AK_properties_typeProperties_url": {
+			"value": "@{linkedService().AcountName}"
+		},
+		"LS_ADLSGen2_using_MI_properties_typeProperties_url": {
+			"value": "@{linkedService().serverfullpath}"
+		},
+		"LS_AccountKV_properties_typeProperties_baseUrl": {
+			"value": "https://RSAKVDev.vault.azure.net/"
+		},
+		"LS_AzureSQLDatabase_Using_UIDPWD_properties_typeProperties_server": {
+			"value": "@{linkedService().ServerName}"
+		},
+		"LS_AzureSQLDatabase_Using_UIDPWD_properties_typeProperties_database": {
+			"value": "@{linkedService().DatabaseName}"
+		},
+		"LS_AzureSQLDatabase_Using_UIDPWD_properties_typeProperties_userName": {
+			"value": "@{linkedService().username}"
+		},
+		"LS_AzureSQL_Using_MI_properties_typeProperties_server": {
+			"value": "@{linkedService().ServerName}"
+		},
+		"LS_AzureSQL_Using_MI_properties_typeProperties_database": {
+			"value": "@{linkedService().DatabaseName}"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
