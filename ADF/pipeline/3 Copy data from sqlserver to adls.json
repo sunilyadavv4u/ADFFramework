@@ -1,0 +1,209 @@
+{
+	"name": "3 Copy data from sqlserver to adls",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get tables details",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "select * from INFORMATION_SCHEMA.TABLES where TABLE_TYPE = 'Base Table'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_AzureSQL",
+						"type": "DatasetReference",
+						"parameters": {
+							"servername": {
+								"value": "@pipeline().parameters.srcservername",
+								"type": "Expression"
+							},
+							"databasename": {
+								"value": "@pipeline().parameters.srcDatabasename",
+								"type": "Expression"
+							},
+							"username": {
+								"value": "@pipeline().parameters.srcusername",
+								"type": "Expression"
+							},
+							"PasswordSecret": {
+								"value": "@pipeline().parameters.srcpwd",
+								"type": "Expression"
+							},
+							"tableschema": "INFORMATION_SCHEMA",
+							"table_name": "TABLES"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Iterate each tables",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get tables details",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get tables details').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_AzureSQL",
+									"type": "DatasetReference",
+									"parameters": {
+										"servername": {
+											"value": "@pipeline().parameters.srcservername",
+											"type": "Expression"
+										},
+										"databasename": {
+											"value": "@pipeline().parameters.srcDatabasename",
+											"type": "Expression"
+										},
+										"username": {
+											"value": "@pipeline().parameters.srcusername",
+											"type": "Expression"
+										},
+										"PasswordSecret": {
+											"value": "@pipeline().parameters.srcpwd",
+											"type": "Expression"
+										},
+										"tableschema": {
+											"value": "@item().TABLE_SCHEMA",
+											"type": "Expression"
+										},
+										"table_name": {
+											"value": "@item().TABLE_NAME",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_Write_Parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"ServerName": {
+											"value": "@pipeline().parameters.tgtADLSServername",
+											"type": "Expression"
+										},
+										"Secret": {
+											"value": "@pipeline().parameters.tgtADLSAccountSecret",
+											"type": "Expression"
+										},
+										"ContainerName": {
+											"value": "@pipeline().parameters.tgtContainerName",
+											"type": "Expression"
+										},
+										"Directory": {
+											"value": "@concat(pipeline().parameters.tgtDirectory,'/' , item().TABLE_SCHEMA)",
+											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@item().TABLE_NAME",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"srcservername": {
+				"type": "string",
+				"defaultValue": "rsmdev.database.windows.net"
+			},
+			"srcDatabasename": {
+				"type": "string",
+				"defaultValue": "sqldb"
+			},
+			"srcusername": {
+				"type": "string",
+				"defaultValue": "rsmdev"
+			},
+			"srcpwd": {
+				"type": "string",
+				"defaultValue": "SQLPWD"
+			},
+			"tgtADLSServername": {
+				"type": "string",
+				"defaultValue": "https://rsdev.dfs.core.windows.net"
+			},
+			"tgtADLSAccountSecret": {
+				"type": "string",
+				"defaultValue": "ADLSSecret"
+			},
+			"tgtContainerName": {
+				"type": "string",
+				"defaultValue": "bronze"
+			},
+			"tgtDirectory": {
+				"type": "string",
+				"defaultValue": "landing/stage/"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-09-12T18:04:50Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

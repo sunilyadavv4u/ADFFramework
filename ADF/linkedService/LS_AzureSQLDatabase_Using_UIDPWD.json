@@ -1,0 +1,45 @@
+{
+	"name": "LS_AzureSQLDatabase_Using_UIDPWD",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"ServerName": {
+				"type": "string",
+				"defaultValue": "rsmdev.database.windows.net"
+			},
+			"DatabaseName": {
+				"type": "string",
+				"defaultValue": "sqldb "
+			},
+			"username": {
+				"type": "string",
+				"defaultValue": "rsmdev"
+			},
+			"PasswordSecret": {
+				"type": "string",
+				"defaultValue": "SQLPWD"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "@{linkedService().ServerName}",
+			"database": "@{linkedService().DatabaseName}",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SQL",
+			"userName": "@{linkedService().username}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_AccountKV",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().PasswordSecret",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

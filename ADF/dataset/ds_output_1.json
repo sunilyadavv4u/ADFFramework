@@ -1,0 +1,21 @@
+{
+	"name": "ds_output_1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Using_MI",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"ServerName": "rsmdev.database.windows.net",
+				"DatabaseName": "sqldb"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "tbl",
+			"table": "highSalary"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

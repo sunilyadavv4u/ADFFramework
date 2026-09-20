@@ -1,0 +1,168 @@
+{
+	"name": "SCDType2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_SCDTYPE2_CSV",
+						"type": "DatasetReference"
+					},
+					"name": "SOURCE"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_SCDType2_target_src_csv",
+						"type": "DatasetReference"
+					},
+					"name": "TARGET"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_target_dataflow_scdtyp2",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "srcHash"
+				},
+				{
+					"name": "tgtHash"
+				},
+				{
+					"name": "NotExistInTarget"
+				},
+				{
+					"name": "AddAuditColumns"
+				},
+				{
+					"name": "SelectNewRecordsAndupdatedRecords"
+				},
+				{
+					"name": "FilterOnlyCurrentrecords"
+				},
+				{
+					"name": "FilterOnlyExpiredRecords"
+				},
+				{
+					"name": "ExpiredRecordsOnly"
+				},
+				{
+					"name": "RecordsPresentOnlyInTargetRecords"
+				},
+				{
+					"name": "SelectRecordOnlyPresentInTargetRecords"
+				},
+				{
+					"name": "MatchedPrimaryKey"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          user_id as string,",
+				"          subscription as string,",
+				"          price as string,",
+				"          location as string,",
+				"          pincode as string,",
+				"          isactive as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SOURCE",
+				"source(output(",
+				"          user_id as string,",
+				"          subscription as string,",
+				"          price as string,",
+				"          location as string,",
+				"          pincode as string,",
+				"          isactive as string,",
+				"          effective_start_date as date,",
+				"          effective_end_date as date,",
+				"          current_flag as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> TARGET",
+				"SOURCE derive(hash = md5(user_id,subscription,price,location,pincode,isactive)) ~> srcHash",
+				"TARGET derive(hash = md5(user_id,subscription,price,location,pincode,isactive)) ~> tgtHash",
+				"srcHash, tgtHash exists(srcHash@hash == tgtHash@hash,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> NotExistInTarget",
+				"NotExistInTarget derive(current_flag = 1,",
+				"          effective_start_date = currentDate(),",
+				"          effective_end_date = toDate('9999-12-31')) ~> AddAuditColumns",
+				"AddAuditColumns select(mapColumn(",
+				"          user_id,",
+				"          subscription,",
+				"          price,",
+				"          location,",
+				"          pincode,",
+				"          isactive,",
+				"          current_flag,",
+				"          effective_start_date,",
+				"          effective_end_date",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectNewRecordsAndupdatedRecords",
+				"tgtHash filter(current_flag == 1) ~> FilterOnlyCurrentrecords",
+				"tgtHash filter(current_flag==0) ~> FilterOnlyExpiredRecords",
+				"FilterOnlyExpiredRecords select(mapColumn(",
+				"          user_id,",
+				"          subscription,",
+				"          price,",
+				"          location,",
+				"          pincode,",
+				"          isactive,",
+				"          effective_start_date,",
+				"          effective_end_date,",
+				"          current_flag",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> ExpiredRecordsOnly",
+				"FilterOnlyCurrentrecords, srcHash exists(TARGET@user_id == SOURCE@user_id,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> RecordsPresentOnlyInTargetRecords",
+				"RecordsPresentOnlyInTargetRecords select(mapColumn(",
+				"          user_id,",
+				"          subscription,",
+				"          price,",
+				"          location,",
+				"          pincode,",
+				"          isactive,",
+				"          effective_start_date,",
+				"          effective_end_date,",
+				"          current_flag",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectRecordOnlyPresentInTargetRecords",
+				"FilterOnlyCurrentrecords, srcHash exists(TARGET@user_id == SOURCE@user_id,",
+				"     negate:false,",
+				"     broadcast: 'auto')~> MatchedPrimaryKey",
+				"SelectNewRecordsAndupdatedRecords sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          user_id as string,",
+				"          subscription as string,",
+				"          price as string,",
+				"          location as string,",
+				"          pincode as string,",
+				"          isactive as string,",
+				"          effective_start_date as string,",
+				"          effective_end_date as string,",
+				"          current_flag as string",
+				"     ),",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1"
+			]
+		}
+	}
+}

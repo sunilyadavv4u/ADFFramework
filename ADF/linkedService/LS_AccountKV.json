@@ -1,0 +1,11 @@
+{
+	"name": "LS_AccountKV",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://RSAKVDev.vault.azure.net/"
+		}
+	}
+}

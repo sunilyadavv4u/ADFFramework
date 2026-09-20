@@ -1,0 +1,17 @@
+{
+	"name": "DS_output_3",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Using_MI",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "tbl",
+			"table": "lowerSalary"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

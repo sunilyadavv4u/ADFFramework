@@ -1,0 +1,93 @@
+{
+	"name": "Joindataflow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_adls_emp",
+						"type": "DatasetReference"
+					},
+					"name": "adlsemp"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_customer",
+						"type": "DatasetReference"
+					},
+					"name": "adlsdepartment"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Matchingdatatable",
+						"type": "DatasetReference"
+					},
+					"name": "Matchingsink"
+				},
+				{
+					"dataset": {
+						"referenceName": "nonMatchingtable",
+						"type": "DatasetReference"
+					},
+					"name": "sinknonMatching"
+				}
+			],
+			"transformations": [
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "split1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          EmployeeID as integer,",
+				"          Name as string,",
+				"          DepartmentID as integer,",
+				"          Salary as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> adlsemp",
+				"source(output(",
+				"          DepartmentID as integer,",
+				"          DepartmentName as string,",
+				"          ManagerID as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> adlsdepartment",
+				"adlsemp, adlsdepartment lookup(adlsemp@DepartmentID == adlsdepartment@DepartmentID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"lookup1 split(isMatch(),",
+				"     disjoint: true) ~> split1@(matchingRecord, NonMatchingRecords)",
+				"split1@matchingRecord sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> Matchingsink",
+				"split1@NonMatchingRecords sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sinknonMatching"
+			]
+		}
+	}
+}

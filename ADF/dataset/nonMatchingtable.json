@@ -1,0 +1,17 @@
+{
+	"name": "nonMatchingtable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Using_MI",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "tbl",
+			"table": "NonMatchingData"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

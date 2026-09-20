@@ -1,0 +1,240 @@
+{
+	"name": "1_Copy Multiple CSV file from adls to adls",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get records present in adls directory",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_ADLSDataSet_csv",
+						"type": "DatasetReference",
+						"parameters": {
+							"FileSystem": {
+								"value": "@pipeline().parameters.SRCADLSContainer",
+								"type": "Expression"
+							},
+							"ADLSSecret": {
+								"value": "@pipeline().parameters.SRCADLSSecret",
+								"type": "Expression"
+							},
+							"ADLSServerfull": {
+								"value": "@pipeline().parameters.SRCADLSServer",
+								"type": "Expression"
+							},
+							"ADLSDirectory": {
+								"value": "@pipeline().parameters.SRCADLSDirectory",
+								"type": "Expression"
+							},
+							"Filename": " "
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Filter only csv files",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Get records present in adls directory",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get records present in adls directory').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@endswith(item().name,'.csv' )",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "itrate each csv file",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Filter only csv files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Filter only csv files').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy file to adls bronze",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_ADLSDataSet_csv",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileSystem": {
+											"value": "@pipeline().parameters.SRCADLSContainer",
+											"type": "Expression"
+										},
+										"ADLSSecret": {
+											"value": "@pipeline().parameters.SRCADLSSecret",
+											"type": "Expression"
+										},
+										"ADLSServerfull": {
+											"value": "@pipeline().parameters.SRCADLSServer",
+											"type": "Expression"
+										},
+										"ADLSDirectory": {
+											"value": "@pipeline().parameters.SRCADLSDirectory",
+											"type": "Expression"
+										},
+										"Filename": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLSDataSet_csv",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileSystem": {
+											"value": "@pipeline().parameters.TGTADLSContainer",
+											"type": "Expression"
+										},
+										"ADLSSecret": {
+											"value": "@pipeline().parameters.TGTADLSSecret",
+											"type": "Expression"
+										},
+										"ADLSServerfull": {
+											"value": "@pipeline().parameters.TGTADLSServer",
+											"type": "Expression"
+										},
+										"ADLSDirectory": {
+											"value": "@pipeline().parameters.TGTADLSDirectory",
+											"type": "Expression"
+										},
+										"Filename": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"SRCADLSServer": {
+				"type": "string",
+				"defaultValue": "https://rsdev.dfs.core.windows.net"
+			},
+			"SRCADLSSecret": {
+				"type": "string",
+				"defaultValue": "ADLSSecret"
+			},
+			"SRCADLSContainer": {
+				"type": "string",
+				"defaultValue": "raw"
+			},
+			"SRCADLSDirectory": {
+				"type": "string",
+				"defaultValue": "stage/raw"
+			},
+			"TGTADLSServer": {
+				"type": "string",
+				"defaultValue": "https://rsdev.dfs.core.windows.net"
+			},
+			"TGTADLSSecret": {
+				"type": "string",
+				"defaultValue": "ADLSSecret"
+			},
+			"TGTADLSContainer": {
+				"type": "string",
+				"defaultValue": "bronze"
+			},
+			"TGTADLSDirectory": {
+				"type": "string",
+				"defaultValue": "learning/stage"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-09-11T18:28:56Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
